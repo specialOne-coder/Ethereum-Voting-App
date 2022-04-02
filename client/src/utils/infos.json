@@ -1,0 +1,63 @@
+[{
+    
+        "name": "Fabien Roussel",
+        "parti":"Parti communiste français",
+        "image": "https://i.imgur.com/Et7lXtA.png"
+    },
+    {
+        "name": "Nicolas Dupont",
+        "parti":"Debout la France",
+        "image": "https://i.imgur.com/h9aFjRd.png"
+    },
+    {
+        "name": "Anne Hidalgo",
+        "parti":"Parti socialiste",
+        "image": "https://i.imgur.com/dpXfVx9.png"
+    },
+    {
+        "name": "Yannick Jadot",
+        "parti":"Europe Écologie-les Verts",
+        "image": "https://i.imgur.com/kAuoO1T.png"
+    },
+    {
+        "name": "Jean Lassalle",
+        "parti":"Résistons !",
+        "image": "https://i.imgur.com/lvnQl3Y.png"
+    },
+    {
+        "name": "Emmanuel Macron",
+        "parti":"La République en marche",
+        "image": "https://i.imgur.com/xPRexZf.png"
+    },
+    {
+        "numero": 6,
+        "nom": "Jean-Luc Mélenchon",
+        "parti":"La France insoumise",
+        "image": "https://i.imgur.com/knW4RqF.png"
+    },
+    {
+        "name": "Valérie Pécresse",
+        "parti":"Les Républicains",
+        "image": "https://i.imgur.com/JHVHqkH.png"
+    },
+    {
+        "name": "Marine Le Pen",
+        "parti":"Rassemblement national",
+        "image": "https://i.imgur.com/OWqx7sV.png"
+    },
+    {
+        "name": "Philippe Poutou",
+        "parti":"Nouveau parti anticapitaliste",
+        "image": "https://i.imgur.com/kY0fJKI.png"
+    },
+    {
+        "name": "Nathalie Arthaud",
+        "parti":"Lutte ouvrière",
+        "image": "https://i.imgur.com/Hfw06sf.png"
+    },
+    {
+        "name": "Éric Zemmour",
+        "parti":"Reconquête !",
+        "image": "https://i.imgur.com/LOvb5R1.png"
+    }
+]

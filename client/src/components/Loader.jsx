@@ -1,0 +1,12 @@
+import React from 'react';
+
+const Loader = ({taille}) => {
+    console.log('taille du load : ',taille);
+    return (
+        <div className="flex justify-center items-center py-3">
+            <div className={`animate-spin rounded-full h-${taille} w-${taille} border-b-2 border-red-700`} />
+        </div>
+    );
+};
+
+export default Loader;
