@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useContext } from "react";
 import { PremierVote, Table } from "../components/index";
+import { ElectionContext } from "../context/ElectionContext";
 
 
 const Premier = () => {

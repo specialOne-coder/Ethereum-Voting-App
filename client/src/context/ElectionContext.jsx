@@ -3,6 +3,7 @@ import { contractABI, contractAddress, infura } from "../utils/constants";
 import { ethers } from "ethers";
 import Web3Modal from "web3modal";
 import WalletConnectProvider from "@walletconnect/web3-provider";
+import { useLocation } from "react-router-dom";
 const Alert = require("sweetalert2");
 
 // Variables requises
@@ -22,7 +23,7 @@ const web3Modal = new Web3Modal({
   network: "rinkeby", // optional
   cacheProvider: true, // optional
   providerOptions, // required
-  //theme: "dark", // optional
+  theme: "dark", // optional
 });
 
 /**
@@ -39,7 +40,6 @@ export const ElectionProvider = ({ children }) => {
   const [candidatList, setCandidatList] = useState([]);
   const [voteS, setVoteS] = useState(0);
   const [error, setError] = useState("");
-
   const [goodNetwork, setGoodNetwork] = useState(false);
 
   const myProvider = async () => {
@@ -68,7 +68,7 @@ export const ElectionProvider = ({ children }) => {
 
   /**
    *
-   * @returns le contrat
+   * @returns le contrat pour permettre à l'utilisateur de faire des transacs
    */
   const getContract = async () => {
     const signer = await mySigner();
@@ -80,9 +80,24 @@ export const ElectionProvider = ({ children }) => {
     return ElectionContract;
   };
 
+  /**
+   *
+   * @returns le contrat pour recupérer des infos sans l'utilisateurs
+   */
+  const getContractWithoutSigner = async () => {
+    const RPC = "https://rinkeby.infura.io/v3/2d40a4aee5274f3b80cad4f68e4d9d3a";
+    const prov = new ethers.providers.JsonRpcProvider(RPC);
+    const ElectionContract = new ethers.Contract(
+      contractAddress,
+      contractABI,
+      prov
+    );
+    return ElectionContract;
+  };
+
   // connecter son wallet
   const connectWallet = async () => {
-    if (!ethereum) return alert("Svp veuillez installer un wallet ethereum");
+    //if (!ethereum) return alert("Svp veuillez installer un wallet ethereum");
     try {
       const library = await myLibrary();
       const accounts = await library.listAccounts();
@@ -95,7 +110,6 @@ export const ElectionProvider = ({ children }) => {
   //voir s'il est connecté ou pas
   const isConnected = async () => {
     const acs = await myAccounts();
-    console.log("acts : ", acs);
     if (acs.length > 0) {
       networkVerify();
       setCurrentAccount(acs[0]);
@@ -107,7 +121,6 @@ export const ElectionProvider = ({ children }) => {
   const networkVerify = async () => {
     const lib = await myLibrary();
     const net = lib.getNetwork();
-    console.log("network dans verify: ", (await net).name);
     if ((await net).name !== "rinkeby") {
       Alert.fire({
         icon: "error",
@@ -174,31 +187,30 @@ export const ElectionProvider = ({ children }) => {
   const premierVote = async (candidat) => {
     setLoading(true);
     setCandidat(candidat);
-    console.log("candidat: ", candidat);
     let transaction;
     try {
       const contract = await getContract();
-      console.log("loading avant le vote : ", loading);
       let vote = await contract.votePremierTour(candidat, {
         gasLimit: 500000,
       });
       transaction = vote.hash;
       await vote.wait();
+      setLoading(false);
+      getCandidats();
+      getNombreVotesPremierTour();
+      Alert.fire({
+        position: "center",
+        icon: "success",
+        title: `Vote confirmé `,
+        text: `Vous venez de voter, vous avez aussi reçu votre nft, vous pouvez le retrouver dans votre portefeuille`,
+        showConfirmButton: false,
+        footer: `<a target="_blank" href='https://rinkeby.etherscan.io/tx/${transaction}'/>Voir la transaction</a>`,
+      });
       contract.on("Vote", (address, candidatName) => {
-        setLoading(false);
         console.log("Vote: ", address, candidatName);
         getNombreVotesPremierTour();
-        Alert.fire({
-          position: "center",
-          icon: "success",
-          title: `Vote confirmé `,
-          text: `Vous venez de voter pour ${candidatName}, vous avez aussi reçu votre nft, vous pouvez le retrouver dans votre portefeuille`,
-          showConfirmButton: false,
-          footer: `<a target="_blank" href='https://rinkeby.etherscan.io/tx/${transaction}'/>Voir la transaction</a>`,
-        });
       });
     } catch (error) {
-      console.log(error);
       if (
         error.code === 4001 ||
         error.message.includes("User rejected the transaction")
@@ -226,10 +238,9 @@ export const ElectionProvider = ({ children }) => {
   // Nombres d'inscrits
   const getNombreInscrits = async () => {
     try {
-      const contract = await getContract();
+      const contract = await getContractWithoutSigner();
       let inscrits = await contract.getInscrits();
-      console.log("inscrits: ", inscrits.toNumber());
-      setInscrits(inscrits.toNumber()+1);
+      setInscrits(inscrits.toNumber() + 1);
     } catch (error) {
       console.log(error);
     }
@@ -238,9 +249,8 @@ export const ElectionProvider = ({ children }) => {
   // Nombres de votes au premier tour
   const getNombreVotesPremierTour = async () => {
     try {
-      const contract = await getContract();
+      const contract = await getContractWithoutSigner();
       let votePrem = await contract.totalVotesPremier();
-      console.log("Votes: ", votePrem.toNumber());
       setVoteP(votePrem.toNumber());
     } catch (error) {
       console.log(error);
@@ -250,9 +260,8 @@ export const ElectionProvider = ({ children }) => {
   // Nombres de votes au deuxieme tour
   const getNombreVotesSecondTour = async () => {
     try {
-      const contract = await getContract();
+      const contract = await getContractWithoutSigner();
       let voteSec = await contract.totalVotesSecond();
-      console.log("Votes: ", voteSec.toNumber());
       setVoteS(voteSec.toNumber());
     } catch (error) {
       console.log(error);
@@ -262,45 +271,41 @@ export const ElectionProvider = ({ children }) => {
   // Liste des candidats et leurs différentes infos
   const getCandidats = async () => {
     try {
-      const contract = await getContract();
+      const contract = await getContractWithoutSigner();
       let candidats = await contract.getAllCandidats();
       const candidatData = candidats.map((candidat) => {
         return {
-          id: candidat['1'].toNumber(),
+          id: candidat["1"].toNumber(),
           name: candidat["name"],
           votes: candidat["voteCount"].toNumber(),
           voteSecond: candidat["secondVoteCount"].toNumber(),
         };
       });
       setCandidatList(candidatData);
-      console.log("candidats: ", candidats);
-      console.log("candidatsData: ", candidatData);
     } catch (error) {
       console.log(error);
     }
   };
 
-  // A chaque fois qu'il y a un vote au premier tour
+  //A chaque fois qu'il y a event associés à ces variables, on récupère les infos
   useEffect(() => {
     getCandidats();
     getNombreVotesPremierTour();
-  },[voteP]);
-
-  // A chaque fois qu'il y a un vote au deuxieme tour
-  useEffect(() => {
-    getCandidats();
+    getNombreInscrits();
     getNombreVotesSecondTour();
-  },[voteS]);
+  }, [voteP, voteS]);
 
   useEffect(() => {
     if (web3Modal.cachedProvider) {
-      connectWallet();
+      isConnected();
     }
-    isConnected();
-    getNombreInscrits();
-    getNombreVotesPremierTour();
-    getNombreVotesSecondTour();
-    getCandidats();
+    const interval = setInterval(() => {
+      getNombreInscrits();
+      getNombreVotesPremierTour();
+      getNombreVotesSecondTour();
+      getCandidats();
+    }, 1000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -361,6 +366,10 @@ export const ElectionProvider = ({ children }) => {
         inscrits,
         goodNetwork,
         candidat,
+        getNombreInscrits,
+        getNombreVotesPremierTour,
+        getNombreVotesSecondTour,
+        getCandidats,
         networkVerify,
         switchNetwork,
       }}

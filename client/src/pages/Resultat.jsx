@@ -9,9 +9,8 @@ const companyCommonStyles =
   "min-h-[70px] sm:px-0 px-2 sm:min-w-[220px] flex justify-center items-center border-[0.5px] border-gray-400 text-sm font-light text-white";
 
 const Resultat = () => {
-  const { candidatList } = useContext(ElectionContext);
-  const eg = data;
-  console.log('eg', eg);
+  const { candidatList,getCandidats } = useContext(ElectionContext);
+  //getCandidats();
   return (
     <div className="flex w-full justify-center items-center">
       <div className="flex mf:flex-row flex-col items-center justify-between  py-12 px-4">

@@ -1,7 +1,13 @@
-import React from "react";
-import { Routes, Route, BrowserRouter as Router } from "react-router-dom";
-import { HomePage, PremierPage, SecondPage,Resultat } from "../pages/index";
+import React, { useContext, useEffect } from "react";
+import {
+  Routes,
+  Route,
+  BrowserRouter as Router,
+  useLocation,
+} from "react-router-dom";
+import { HomePage, PremierPage, SecondPage, Resultat } from "../pages/index";
 import { Navbar } from ".";
+import { ElectionContext } from "../context/ElectionContext";
 
 const Navigation = () => {
   return (
