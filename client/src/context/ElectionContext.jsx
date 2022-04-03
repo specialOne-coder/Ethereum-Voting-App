@@ -1,5 +1,5 @@
 import React, { useState, useEffect, createContext } from "react";
-import { contractABI, contractAddress, infura } from "../utils/constants";
+import { contractABI, contractAddress, infura, RPC } from "../utils/constants";
 import { ethers } from "ethers";
 import Web3Modal from "web3modal";
 import WalletConnectProvider from "@walletconnect/web3-provider";
@@ -34,6 +34,8 @@ export const ElectionProvider = ({ children }) => {
   const [currentAccount, setCurrentAccount] = useState();
   const [candidat, setCandidat] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [candidatD, setCandidatD] = useState(0);
+  const [loadingD, setLoadingD] = useState(false);
   const [inscrits, setInscrits] = useState(0);
   const [voteP, setVoteP] = useState(0);
   const [candidatList, setCandidatList] = useState([]);
@@ -84,7 +86,6 @@ export const ElectionProvider = ({ children }) => {
    * @returns le contrat pour recupérer des infos sans l'utilisateurs
    */
   const getContractWithoutSigner = async () => {
-    const RPC = "https://rinkeby.infura.io/v3/2d40a4aee5274f3b80cad4f68e4d9d3a";
     const prov = new ethers.providers.JsonRpcProvider(RPC);
     const ElectionContract = new ethers.Contract(
       contractAddress,
@@ -94,7 +95,6 @@ export const ElectionProvider = ({ children }) => {
     return ElectionContract;
   };
 
-
   const connect = async () => {
     try {
       const library = await myLibrary();
@@ -103,7 +103,7 @@ export const ElectionProvider = ({ children }) => {
     } catch (error) {
       setError(error);
     }
-  }
+  };
   // connecter son wallet
   const connectWallet = async () => {
     if (!ethereum) {
@@ -205,7 +205,7 @@ export const ElectionProvider = ({ children }) => {
    */
   // vote au premier tour d'un utilisateur inscrit
   const premierVote = async (candidat) => {
-    setLoading(true);
+    await setLoading(true);
     setCandidat(candidat);
     let transaction;
     try {
@@ -215,9 +215,9 @@ export const ElectionProvider = ({ children }) => {
       });
       transaction = vote.hash;
       await vote.wait();
-      setLoading(false);
       getCandidats();
       getNombreVotesPremierTour();
+      setLoading(false);
       Alert.fire({
         position: "center",
         icon: "success",
@@ -229,6 +229,8 @@ export const ElectionProvider = ({ children }) => {
       contract.on("Vote", (address, candidatName) => {
         console.log("Vote: ", address, candidatName);
         getNombreVotesPremierTour();
+        getCandidats();
+        getNombreInscrits();
       });
     } catch (error) {
       if (
@@ -255,15 +257,69 @@ export const ElectionProvider = ({ children }) => {
     }
   };
 
+  // vote au second tour d'un utilisateur inscrit
+  const secondVote = async (candidat) => {
+    await setLoadingD(true);
+    setCandidatD(candidat);
+    let transaction;
+    try {
+      const contract = await getContract();
+      let vote = await contract.voteSecondTour(candidat, {
+        gasLimit: 500000,
+      });
+      transaction = vote.hash;
+      await vote.wait();
+      getCandidats();
+      getNombreVotesSecondTour();
+      setLoadingD(false);
+      Alert.fire({
+        position: "center",
+        icon: "success",
+        title: `Vote confirmé `,
+        text: `Vous venez de voter, vous avez aussi reçu votre nft, vous pouvez le retrouver dans votre portefeuille`,
+        showConfirmButton: false,
+        footer: `<a target="_blank" href='https://rinkeby.etherscan.io/tx/${transaction}'/>Voir la transaction</a>`,
+      });
+      contract.on("Vote", (address, candidatName) => {
+        console.log("Vote: ", address, candidatName);
+        getNombreVotesSecondTour();
+        getCandidats();
+        getNombreInscrits();
+      });
+    } catch (error) {
+      if (
+        error.code === 4001 ||
+        error.message.includes("User rejected the transaction")
+      ) {
+        setLoadingD(false);
+        Alert.fire({
+          icon: "error",
+          title: "Oops...",
+          text: "Permission denied",
+          showConfirmButton: false,
+        });
+      } else {
+        setLoadingD(false);
+        Alert.fire({
+          icon: "error",
+          title: "Oops...",
+          text: "Vous avez déja voté! Ou votre compte n'est pas inscrit",
+          showConfirmButton: false,
+          footer: `<a target="_blank" href='https://rinkeby.etherscan.io/tx/${transaction}' />Voir la transaction</a>`,
+        });
+      }
+    }
+  };
+
+
   // Nombres d'inscrits
   const getNombreInscrits = async () => {
     try {
       const contract = await getContractWithoutSigner();
+      console.log('contract', contract);
       let inscrits = await contract.getInscrits();
       setInscrits(inscrits.toNumber() + 1);
-    } catch (error) {
-      console.log(error);
-    }
+    } catch (error) {}
   };
 
   // Nombres de votes au premier tour
@@ -272,9 +328,7 @@ export const ElectionProvider = ({ children }) => {
       const contract = await getContractWithoutSigner();
       let votePrem = await contract.totalVotesPremier();
       setVoteP(votePrem.toNumber());
-    } catch (error) {
-      console.log(error);
-    }
+    } catch (error) {}
   };
 
   // Nombres de votes au deuxieme tour
@@ -283,9 +337,7 @@ export const ElectionProvider = ({ children }) => {
       const contract = await getContractWithoutSigner();
       let voteSec = await contract.totalVotesSecond();
       setVoteS(voteSec.toNumber());
-    } catch (error) {
-      console.log(error);
-    }
+    } catch (error) {}
   };
 
   // Liste des candidats et leurs différentes infos
@@ -299,12 +351,12 @@ export const ElectionProvider = ({ children }) => {
           name: candidat["name"],
           votes: candidat["voteCount"].toNumber(),
           voteSecond: candidat["secondVoteCount"].toNumber(),
+          pass: candidat["pass"]
         };
       });
+      console.log('candidatData', candidats);
       setCandidatList(candidatData);
-    } catch (error) {
-      console.log(error);
-    }
+    } catch (error) {}
   };
 
   //A chaque fois qu'il y a event associés à ces variables, on récupère les infos
@@ -324,8 +376,12 @@ export const ElectionProvider = ({ children }) => {
       getNombreVotesPremierTour();
       getNombreVotesSecondTour();
       getCandidats();
-    }, 10000000000);
+    }, 60000);
     return () => clearInterval(interval);
+    // getNombreInscrits();
+    // getNombreVotesPremierTour();
+    // getNombreVotesSecondTour();
+    // getCandidats();
   }, []);
 
   useEffect(() => {
@@ -337,6 +393,7 @@ export const ElectionProvider = ({ children }) => {
 
       const handleChainChanged = (_hexChainId) => {
         if (_hexChainId != 4) {
+          isConnected();
           Alert.fire({
             icon: "error",
             title: "Oops...",
@@ -378,12 +435,15 @@ export const ElectionProvider = ({ children }) => {
         currentAccount,
         connectWallet,
         premierVote,
+        secondVote,
+        loadingD,
         candidatList,
         loading,
         voteS,
         voteP,
         inscrits,
         goodNetwork,
+        candidatD,
         candidat,
         getNombreInscrits,
         getNombreVotesPremierTour,
