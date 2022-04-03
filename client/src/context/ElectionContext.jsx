@@ -3,7 +3,6 @@ import { contractABI, contractAddress, infura } from "../utils/constants";
 import { ethers } from "ethers";
 import Web3Modal from "web3modal";
 import WalletConnectProvider from "@walletconnect/web3-provider";
-import { useLocation } from "react-router-dom";
 const Alert = require("sweetalert2");
 
 // Variables requises
@@ -95,9 +94,30 @@ export const ElectionProvider = ({ children }) => {
     return ElectionContract;
   };
 
+
+  const connect = async () => {
+    try {
+      const library = await myLibrary();
+      const accounts = await library.listAccounts();
+      setCurrentAccount(accounts[0]);
+    } catch (error) {
+      setError(error);
+    }
+  }
   // connecter son wallet
   const connectWallet = async () => {
-    //if (!ethereum) return alert("Svp veuillez installer un wallet ethereum");
+    if (!ethereum) {
+      return Alert.fire({
+        icon: "question",
+        title: "Oops...",
+        confirmButtonText: "Utiliser walletconnect avec un telephone",
+        text: "Pas de wallet ethereum,veuillez en installer un",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          connect();
+        }
+      });
+    }
     try {
       const library = await myLibrary();
       const accounts = await library.listAccounts();
@@ -297,14 +317,14 @@ export const ElectionProvider = ({ children }) => {
 
   useEffect(() => {
     if (web3Modal.cachedProvider) {
-      isConnected();
+      connect();
     }
     const interval = setInterval(() => {
       getNombreInscrits();
       getNombreVotesPremierTour();
       getNombreVotesSecondTour();
       getCandidats();
-    }, 1000);
+    }, 10000000000);
     return () => clearInterval(interval);
   }, []);
 
@@ -317,7 +337,6 @@ export const ElectionProvider = ({ children }) => {
 
       const handleChainChanged = (_hexChainId) => {
         if (_hexChainId != 4) {
-          isConnected();
           Alert.fire({
             icon: "error",
             title: "Oops...",
