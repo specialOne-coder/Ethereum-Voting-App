@@ -2,9 +2,6 @@ import React from "react";
 import { PremierVote, Table } from "../components/index";
 
 
-
-const companyCommonStyles =
-  "min-h-[50px] sm:px-0 px-2 sm:min-w-[250px] flex justify-center items-center border-[0.5px] border-gray-400 text-sm font-light text-white";
 const Premier = () => {
   return (
     <div className="gradient-bg-welcome">

@@ -36,6 +36,7 @@ export const ElectionProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [inscrits, setInscrits] = useState(0);
   const [voteP, setVoteP] = useState(0);
+  const [candidatList, setCandidatList] = useState([]);
   const [voteS, setVoteS] = useState(0);
   const [error, setError] = useState("");
 
@@ -76,7 +77,6 @@ export const ElectionProvider = ({ children }) => {
       contractABI,
       signer
     );
-    console.log("le contrat: ", ElectionContract);
     return ElectionContract;
   };
 
@@ -187,6 +187,7 @@ export const ElectionProvider = ({ children }) => {
       contract.on("Vote", (address, candidatName) => {
         setLoading(false);
         console.log("Vote: ", address, candidatName);
+        getNombreVotesPremierTour();
         Alert.fire({
           position: "center",
           icon: "success",
@@ -228,13 +229,14 @@ export const ElectionProvider = ({ children }) => {
       const contract = await getContract();
       let inscrits = await contract.getInscrits();
       console.log("inscrits: ", inscrits.toNumber());
-      setInscrits(inscrits.toNumber());
+      setInscrits(inscrits.toNumber()+1);
     } catch (error) {
       console.log(error);
     }
   };
 
-  const getNombreVotes = async () => {
+  // Nombres de votes au premier tour
+  const getNombreVotesPremierTour = async () => {
     try {
       const contract = await getContract();
       let votePrem = await contract.totalVotesPremier();
@@ -245,13 +247,60 @@ export const ElectionProvider = ({ children }) => {
     }
   };
 
+  // Nombres de votes au deuxieme tour
+  const getNombreVotesSecondTour = async () => {
+    try {
+      const contract = await getContract();
+      let voteSec = await contract.totalVotesSecond();
+      console.log("Votes: ", voteSec.toNumber());
+      setVoteS(voteSec.toNumber());
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  // Liste des candidats et leurs différentes infos
+  const getCandidats = async () => {
+    try {
+      const contract = await getContract();
+      let candidats = await contract.getAllCandidats();
+      const candidatData = candidats.map((candidat) => {
+        return {
+          id: candidat['1'].toNumber(),
+          name: candidat["name"],
+          votes: candidat["voteCount"].toNumber(),
+          voteSecond: candidat["secondVoteCount"].toNumber(),
+        };
+      });
+      setCandidatList(candidatData);
+      console.log("candidats: ", candidats);
+      console.log("candidatsData: ", candidatData);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  // A chaque fois qu'il y a un vote au premier tour
+  useEffect(() => {
+    getCandidats();
+    getNombreVotesPremierTour();
+  },[voteP]);
+
+  // A chaque fois qu'il y a un vote au deuxieme tour
+  useEffect(() => {
+    getCandidats();
+    getNombreVotesSecondTour();
+  },[voteS]);
+
   useEffect(() => {
     if (web3Modal.cachedProvider) {
       connectWallet();
     }
     isConnected();
     getNombreInscrits();
-    getNombreVotes();
+    getNombreVotesPremierTour();
+    getNombreVotesSecondTour();
+    getCandidats();
   }, []);
 
   useEffect(() => {
@@ -305,7 +354,9 @@ export const ElectionProvider = ({ children }) => {
         currentAccount,
         connectWallet,
         premierVote,
+        candidatList,
         loading,
+        voteS,
         voteP,
         inscrits,
         goodNetwork,
