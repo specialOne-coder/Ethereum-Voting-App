@@ -99,17 +99,16 @@ const CandidatCardSecond = ({ nom, photo, numero, parti }) => {
                 <p className="text-white font-light text-sm">
                   {/* {shortenAddress(currentAccount)} */}
                 </p>
-
                 <div className="cardEth">
-                  {nom === "" ? (
+                  {nom === "" ? 
                    (
                       <div className="flex justify-center items-center py-3">
                         <div
-                          className={`animate-spin rounded-full h-32 w-32 border-b-2 border-red-700`}
+                          className={`animate-spin rounded-full h-52 w-32 border-b-2 border-red-700`}
                         />
                       </div>
                     )
-                  ) : (
+                   : (
                     <>
                       <ReactRoundedImage
                         image={photo}
@@ -124,6 +123,8 @@ const CandidatCardSecond = ({ nom, photo, numero, parti }) => {
                       </p>
                     </>
                   )}
+                  {nom === "" ? '':
+                   (
                   <button
                     type="button"
                     disabled={disable}
@@ -145,6 +146,7 @@ const CandidatCardSecond = ({ nom, photo, numero, parti }) => {
                       </>
                     )}
                   </button>
+                   )}
                 </div>
               </div>
             </div>
