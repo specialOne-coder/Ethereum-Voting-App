@@ -4,7 +4,7 @@ import { BsInfoCircle } from "react-icons/bs";
 import { ElectionContext } from "../context/ElectionContext";
 import ReactRoundedImage from "react-rounded-image";
 import { FaVoteYea } from "react-icons/fa";
-import { datePremierTour, dateSecondTour } from "../utils/constants";
+import { datePremierTour } from "../utils/constants";
 import Loader from "./Loader";
 const Alert = require("sweetalert2");
 
@@ -17,7 +17,7 @@ const CandidatCard = ({ nom, photo, numero, parti }) => {
   const compareDatePremierTour = () => {
     const date = new Date();
     if (
-      date.getDate() === datePremierTour.getDate() &&
+      date.getDate() <= datePremierTour.getDate() &&
       date.getMonth() === datePremierTour.getMonth() &&
       date.getFullYear() === datePremierTour.getFullYear()
     ) {
@@ -25,6 +25,7 @@ const CandidatCard = ({ nom, photo, numero, parti }) => {
     }
   };
 
+  
   const finishVotePremierTour = () => {
     const date = new Date();
     if (
@@ -52,34 +53,7 @@ const CandidatCard = ({ nom, photo, numero, parti }) => {
       } else {
         networkVerify();
       }
-    } else {
-      const months = [
-        "Janvier",
-        "Fevrier",
-        "Mars",
-        "Avril",
-        "Mai",
-        "Juin",
-        "Juillet",
-        "Août",
-        "Septembre",
-        "Octobre",
-        "Novembre",
-        "Decembre",
-      ];
-      Alert.fire({
-        title: "Soon",
-        icon: "info",
-        width:"40%",
-        text:
-          "L'election n'a pas encore commencé, il commence le : " +
-          datePremierTour.getDate() +
-          " " +
-          months[datePremierTour.getMonth()] +
-          " " +
-          datePremierTour.getFullYear(),
-      });
-    }
+    } 
   };
 
   return (

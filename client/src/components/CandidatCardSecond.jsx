@@ -2,14 +2,14 @@ import React, { useState, useContext } from "react";
 import { SiEthereum } from "react-icons/si";
 import { BsInfoCircle } from "react-icons/bs";
 import { ElectionContext } from "../context/ElectionContext";
-import { datePremierTour, dateSecondTour } from "../utils/constants";
+import {dateSecondTour } from "../utils/constants";
 import ReactRoundedImage from "react-rounded-image";
 import { FaVoteYea } from "react-icons/fa";
 import Loader from "./Loader";
 const Alert = require("sweetalert2");
 
 const CandidatCardSecond = ({ nom, photo, numero, parti }) => {
-  const [disable, setDisable] = useState(false);
+  const [disabled, setDisabled] = useState(false);
   const { secondVote, loadingD, goodNetwork, candidatD, networkVerify } =
     useContext(ElectionContext);
 
@@ -17,7 +17,7 @@ const CandidatCardSecond = ({ nom, photo, numero, parti }) => {
   const compareDateSecondTour = () => {
     const date = new Date();
     if (
-      date.getDate() === dateSecondTour.getDate() &&
+      date.getDate() <= dateSecondTour.getDate() &&
       date.getMonth() === dateSecondTour.getMonth() &&
       date.getFullYear() === dateSecondTour.getFullYear()
     ) {
@@ -104,7 +104,7 @@ const CandidatCardSecond = ({ nom, photo, numero, parti }) => {
                    (
                       <div className="flex justify-center items-center py-3">
                         <div
-                          className={`animate-spin rounded-full h-52 w-32 border-b-2 border-red-700`}
+                          className={`animate-spin rounded-full h-52 w-52 border-b-2 border-red-700`}
                         />
                       </div>
                     )
@@ -127,11 +127,11 @@ const CandidatCardSecond = ({ nom, photo, numero, parti }) => {
                    (
                   <button
                     type="button"
-                    disabled={disable}
+                    disabled={disabled}
                     onClick={async () => {
-                      setDisable(true);
+                      setDisabled(true);
                       await voteSecondTour(numero);
-                      setDisable(false);
+                      setDisabled(false);
                     }}
                     className="flex flex-row justify-center items-center bg-[#2952e3] p-2 rounded-full cursor-pointer hover:bg-[#2546bd] sp"
                   >

@@ -146,7 +146,7 @@ export const ElectionProvider = ({ children }) => {
         icon: "error",
         title: "Oops...",
         confirmButtonText: "Switcher vers le réseau rinkeby",
-        text: "Mauvais, Veuillez utilisez le réseau rinkeby!",
+        text: "Mauvais réseau, veuillez utilisez le réseau rinkeby!",
       }).then((result) => {
         if (result.isConfirmed) {
           switchNetwork();
@@ -227,7 +227,6 @@ export const ElectionProvider = ({ children }) => {
         footer: `<a target="_blank" href='https://rinkeby.etherscan.io/tx/${transaction}'/>Voir la transaction</a>`,
       });
       contract.on("Vote", (address, candidatName) => {
-        console.log("Vote: ", address, candidatName);
         getNombreVotesPremierTour();
         getCandidats();
         getNombreInscrits();
@@ -281,7 +280,6 @@ export const ElectionProvider = ({ children }) => {
         footer: `<a target="_blank" href='https://rinkeby.etherscan.io/tx/${transaction}'/>Voir la transaction</a>`,
       });
       contract.on("Vote", (address, candidatName) => {
-        console.log("Vote: ", address, candidatName);
         getNombreVotesSecondTour();
         getCandidats();
         getNombreInscrits();
@@ -316,7 +314,6 @@ export const ElectionProvider = ({ children }) => {
   const getNombreInscrits = async () => {
     try {
       const contract = await getContractWithoutSigner();
-      console.log('contract', contract);
       let inscrits = await contract.getInscrits();
       setInscrits(inscrits.toNumber() + 1);
     } catch (error) {}
@@ -354,7 +351,6 @@ export const ElectionProvider = ({ children }) => {
           pass: candidat["pass"]
         };
       });
-      console.log('candidatData', candidats);
       setCandidatList(candidatData);
     } catch (error) {}
   };
@@ -398,7 +394,7 @@ export const ElectionProvider = ({ children }) => {
             icon: "error",
             title: "Oops...",
             confirmButtonText: "Switcher vers le réseau rinkeby",
-            text: "Mauvais réseau, Veuillez utilisez le réseau rinkeby!",
+            text: "Mauvais réseau, veuillez utilisez le réseau rinkeby!",
           }).then((result) => {
             if (result.isConfirmed) {
               switchNetwork();

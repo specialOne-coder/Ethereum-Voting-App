@@ -2,7 +2,6 @@ import React, { useContext } from "react";
 import { Link } from "react-router-dom";
 import { FaConnectdevelop, FaVoteYea } from "react-icons/fa";
 import { ElectionContext } from "../context/ElectionContext";
-import Table from "./Table";
 
 const Welcome = () => {
   const { currentAccount, connectWallet } = useContext(ElectionContext);
