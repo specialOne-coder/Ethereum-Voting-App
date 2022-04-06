@@ -3,13 +3,13 @@
 pragma solidity >=0.7.0 <0.9.0;
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+
 /**
  * @title Election Contract
  * @author Ferdinand Attivi
  * @dev Mettre en œuvre le processus de vote ainsi que la délégation de vote pour le présidentiel 2022
  */
-contract Election is ERC721URIStorage{
-
+contract Election is ERC721URIStorage {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
 
@@ -29,7 +29,10 @@ contract Election is ERC721URIStorage{
         bool pass; // s'il passe au second tour
     }
 
+    bool private start; // pour verifier si le PremierVote a démarrer
+    bool private secondStart; // pour voir si le premier tour est fini ou pas
     bool private finish; // pour voir si le premier tour est fini ou pas
+    bool private secondFinish; // pour voir si le second tour est fini ou pas
 
     // evenements pour taf avec le front
     event Vote(address indexed voter, string candidate);
@@ -55,7 +58,9 @@ contract Election is ERC721URIStorage{
      * @dev Création du bulletin de vote .
      * @param candidatsName nom des candidats
      */
-    constructor(string[] memory candidatsName) ERC721("Elections 2022", "election") {
+    constructor(string[] memory candidatsName)
+        ERC721("Presidentiel 2022", "vote")
+    {
         owner = msg.sender;
         electeurs[owner].weight = 1; // le proprio a egalement le droit de voter mdr
 
@@ -75,24 +80,24 @@ contract Election is ERC721URIStorage{
     /**
      * @dev MINT son nft (premier tour)
      */
-     function mintPremierTour() private {
+    function mintPremierTour() private {
         uint256 newTokenId = _tokenIds.current(); // current token id
         //mint
         _safeMint(msg.sender, newTokenId);
         _setTokenURI(newTokenId, "https://jsonkeeper.com/b/U6WF");
         _tokenIds.increment();
-     }
+    }
 
     /**
      * @dev MINT son nft (second tour)
      */
-     function mintSecondTour() private {
+    function mintSecondTour() private {
         uint256 newTokenId = _tokenIds.current(); // current token id
         //mint
         _safeMint(msg.sender, newTokenId);
         _setTokenURI(newTokenId, "https://jsonkeeper.com/b/MFIL");
         _tokenIds.increment();
-     }
+    }
 
     /**
      * @dev Donner à l'electeur le droit de vote
@@ -150,6 +155,7 @@ contract Election is ERC721URIStorage{
     function delegateSecond(address to) public {
         Electeur storage sender = electeurs[msg.sender];
         require(finish, "le premier tour not finish");
+        require(!secondFinish, "le second tour est finit");
         require(sender.weight != 0, "Vous n'avez pas le droit de voter");
         require(!sender.votedSecond, "Already voted");
         require(
@@ -188,6 +194,7 @@ contract Election is ERC721URIStorage{
      */
     function votePremierTour(uint256 _candidat) public {
         Electeur storage sender = electeurs[msg.sender];
+        require(start, "le premier tour pas start");
         require(!finish, "le premier tour est finit");
         require(sender.weight != 0, "Vous n'avez pas le droit de voter");
         require(!sender.voted, "Already voted");
@@ -206,7 +213,9 @@ contract Election is ERC721URIStorage{
      */
     function voteSecondTour(uint256 _candidat) public {
         Electeur storage sender = electeurs[msg.sender];
+        require(secondStart, "le second tour pas start");
         require(finish, "le premier tour not finish");
+        require(!secondFinish, "le second tour est finit");
         require(sender.weight != 0, "Vous n'avez pas le droit de voter");
         require(!sender.votedSecond, "Already voted");
         sender.votedSecond = true;
@@ -294,9 +303,23 @@ contract Election is ERC721URIStorage{
      * @dev le nombre d'inscrit
      * @return votants.length
      */
-     function getInscrits() public view returns(uint256){
-         return votants.length;
-     }
+    function getInscrits() public view returns (uint256) {
+        return votants.length;
+    }
+
+    /**
+     * @dev commencer le premier tour
+     */
+    function startFirstVote() public onlyOwner {
+        start = true;
+    }
+
+    /**
+     * @dev commencer le premier tour
+     */
+    function startSecondVote() public onlyOwner {
+        secondStart = true;
+    }
 
     /**
      * @dev mettre fin au vote pour le premier tour, remettre le poids de chaque electeur à 1
@@ -305,6 +328,16 @@ contract Election is ERC721URIStorage{
         finish = true;
         for (uint256 i = 0; i < votants.length; i++) {
             electeurs[votants[i]].weight = 1;
+        }
+    }
+
+    /**
+     * @dev mettre fin au vote pour le second tour, remettre le poids de chaque electeur à 0
+     */
+    function endSecondVote() public onlyOwner {
+        secondFinish = true;
+        for (uint256 i = 0; i < votants.length; i++) {
+            electeurs[votants[i]].weight = 0;
         }
     }
 
