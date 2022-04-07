@@ -2,7 +2,7 @@ import React from "react";
 import {
   Routes,
   Route,
-  BrowserRouter as Router,
+  HashRouter as Router,
 } from "react-router-dom";
 import { HomePage, PremierPage, SecondPage, Resultat } from "../pages/index";
 import { Navbar } from ".";
