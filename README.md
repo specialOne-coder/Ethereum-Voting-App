@@ -1,6 +1,9 @@
-# Basic Sample Hardhat Project
+# Election Presidentielle Blockchain App
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, a sample script that deploys that contract, and an example of a task implementation, which simply lists the available accounts.
+Ce projet est une mise en place de l'election presidentielle
+sur le testnet rinkeby. Voud pouvez le consulter ici : https://presidentiel-2022.surge.sh/
+
+N'hésite pas si t'as des propositions ou des questions à me contacter.
 
 Try running some of the following tasks:
 
